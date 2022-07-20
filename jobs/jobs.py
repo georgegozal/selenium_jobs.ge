@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.common.exceptions import NoSuchElementException
@@ -5,8 +6,7 @@ from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
-from time import sleep
-# PATH = "~/.webdriver/chromedriver"
+from prettytable import PrettyTable
 
 class Jobs(webdriver.Chrome):
     def __init__(self,teardown=True):
@@ -52,25 +52,60 @@ class Jobs(webdriver.Chrome):
     def get_table_rows(self):
         rows = self.find_elements(
             By.XPATH,
-            # "//div[@style='margin-top:5px;']/table/tbody/tr"
             "//*[@id='job_list_table']/tbody/tr"
         )
         return rows
 
-    def get_data_from_rows(self):
-        data = {}
+    def get_data_from_rows(self,args1,args2):
+        # data = {}
+        datalist=[]
+        id = 1
         rows = self.get_table_rows()
         for row in rows[5:]:
-            url = row.find_element(
-                By.XPATH,
-                # "./td[2]/a/text()"
-                "./td[2]/a[1]"
-            ).get_attribute("href")
             title = row.find_element(
                 By.XPATH,
                 "./td[2]/a[1]"
-            ).get_attribute("innerHTML")
-            data['title'] = title
-            data['url'] = url 
+                ).get_attribute("innerHTML")
 
+            for inc in args1:
+                for excl in args2:
+                    if inc in title:
+                        if excl not in title:
+                            url = row.find_element(
+                                By.XPATH,
+                                "./td[2]/a[1]"
+                                ).get_attribute("href")
+                            company = row.find_element(
+                                By.XPATH,
+                                "./td[4]/a[1]"
+                                ).get_attribute("innerHTML")
+                            published = row.find_element(
+                                By.XPATH,
+                                "./td[5]"
+                                ).get_attribute("innerHTML")
+                            last_date = row.find_element(
+                                By.XPATH,
+                                "./td[6]"
+                                ).get_attribute("innerHTML")
+                            
+                            datalist.append(
+                                [id,
+                                title.strip(),
+                                company.replace('\t','').replace('\n',''),
+                                url,
+                                published,
+                                last_date.replace('\t','').replace('\n','')]
+                            )
+                            id+=1
+        return datalist
 
+    def report(self,args1,args2):
+        datalist = self.get_data_from_rows(args1,args2)
+
+        # create table columns
+        columns = ['ID','Job Title','Company','URL','Publish Date','End Date']
+        table = PrettyTable(
+            field_names=columns
+        )
+        table.add_rows(datalist)
+        print(table)
