@@ -9,10 +9,9 @@ from webdriver_manager.chrome import ChromeDriverManager
 from prettytable import PrettyTable
 
 class Jobs(webdriver.Chrome):
-    def __init__(self,teardown=True):
+    def __init__(self):
         user_agent = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.64 Safari/537.36"
 
-        self.teardown = teardown
         options = Options()
         options.headless = True
         options.add_argument(f"user-agent={user_agent}")
@@ -33,21 +32,42 @@ class Jobs(webdriver.Chrome):
         )
         self.implicitly_wait(5)
         self.maximize_window()
-        print("Hello there, This is a jobs.ge bot")
-
-    def __exit__(self,exc_type, exc_val,exc_tb):
-        if self.teardown:
-            self.quit()
+        print("Hello there, This is a jobs.ge bot.\n")
 
     def land_first_page(self):
         self.get("https://jobs.ge/")
 
-    def change_category(self):
-        category = self.find_element(
+    def get_category(self):
+        categorylist = {}
+        categories = self.find_elements(
             By.XPATH, 
-            "//select/option[@value='6']"
+            # "//select/option[@value='6']"
+            "//*[@id='searchform']/div/div[2]/div[1]/select/option"
         )
-        category.click()
+        for category in categories[1:]:
+            id = category.get_attribute("value")
+            title = category.get_attribute("innerHTML")
+            categorylist[id] = title
+        return categorylist
+
+    def change_category(self):
+        categorylist = self.get_category()
+        print('id','value\n')
+        for key,value in categorylist.items():
+            print(key,' ',value,)
+        user_input = input("Choose category by id: ").strip()
+        while True:
+            if user_input in categorylist.keys():
+                print(f'\nარჩეულია {categorylist[user_input]}\n')
+                break
+            else:
+                user_input = input("\nChoose category by id: ").strip()
+        categories = self.find_element(
+            By.XPATH, 
+            "//select/option[@value='{}']".format(user_input)
+        )
+        categories.click()
+
 
     def get_table_rows(self):
         rows = self.find_elements(
@@ -57,7 +77,6 @@ class Jobs(webdriver.Chrome):
         return rows
 
     def get_data_from_rows(self,args1,args2):
-        # data = {}
         datalist=[]
         id = 1
         rows = self.get_table_rows()
