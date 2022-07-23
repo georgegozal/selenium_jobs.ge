@@ -88,8 +88,8 @@ class Jobs(webdriver.Chrome):
 
             for inc in args1:
                 for excl in args2:
-                    if inc in title:
-                        if excl not in title:
+                    if inc.lower() in title.lower():
+                        if excl.lower() not in title.lower():
                             url = row.find_element(
                                 By.XPATH,
                                 "./td[2]/a[1]"
