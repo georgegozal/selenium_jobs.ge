@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.Python
+*.egg-info/
+.eggs/
+dist/
+build/
+
+# Virtual environments
+.venv/
+venv/
+
+# Scraper output & local artifacts
+jobs_list_*.csv
+jobs_list_*.json
+jobs_list.csv
+jobs_list.json
+jobs_list_old.csv
+.env
+
+# IDE / OS
+.idea/
+.vscode/
+*.swp
+.DS_Store
